@@ -28,7 +28,7 @@ RUN apt-get update && apt-get install -y \
     "php$PHPVERSION-gd" \
     "php$PHPVERSION-dom" \
     "php$PHPVERSION-json" \
-    "php$PHPVERSION-zip \	
+    "php$PHPVERSION-zip" \
     "php$PHPVERSION-pdo" \
     "php$PHPVERSION-mysql" \
     "php$PHPVERSION-curl" \
@@ -38,10 +38,22 @@ RUN apt-get update && apt-get install -y \
     openssl \
     libxi6 \
     libgconf-2-4 \
+    zlib1g-dev \
+    libzip-dev \
     && apt-get clean \
-    && rm -rf /var/lib/apt/lists/* /var/cache/apt/*
+    && rm -rf /var/lib/apt/lists/* /var/cache/apt/* \
+    && docker-php-ext-configure gd --with-freetype-dir=/usr/include/ --with-jpeg-dir=/usr/include/ \
+    && docker-php-ext-install -j$(nproc) gd zip \
+    && docker-php-ext-enable gd zip \
+    && docker-php-source delete \
+    && rm -rf \
+        /usr/include/php \
+        /usr/lib/php/build \
+        /tmp/* \
+        /root/.composer \
+        /var/cache/apk/*;
 
-COPY php_more_upload.ini "/etc/php/$PHPVERSION/cli/php_more_upload.ini"
+COPY php_custom.ini "/etc/php/$PHPVERSION/cli/php_custom.ini"
 
 # Install composer
 RUN curl -sS https://getcomposer.org/installer | php -- --install-dir=/usr/local/bin --filename=composer
